@@ -41,9 +41,9 @@ Custo total: R$ 47,40
 -	LDR – Elemento do tipo passivo onde possível característica de um resistor variável, onde sua resistência varia conforme a intensidade de luz incide. Em nosso projeto foi implantados 4 LDR’s onde os mesmo funcionam aos pares por meio de simples comparação lógica e assim coordenando os eixos horizontal e vertical para melhor posicionamento com relação a luminosidade.
 -	Servomotor – Maquina eletromecânica, onde o mesmo realiza movimento proporcional a um comando dado. Baseado nos dados obtidos com os LDR’s, o controlador irá executar a logica, onde resultado irá direcionar o posicionamento horizontal e vertical dos servomotores.
 -	Arduino Uno – Plataforma de prototipagem eletronicade hardware livre, onde o mesmo possui um controlador Atmel com suporte de entradas e saídas embutido e possui um linguagem de programação que é essencialmente o C/C++. No projeto o controlador é responsável por diversas atividades logicas entre elas, as principais são:
-  - Fazer leitura de dados dos LDR’s
-  - Execução de lógica com aplicação do controlador PID
-  - Controlar o posicionamento dos servomotores
+-- Fazer leitura de dados dos LDR’s
+-- Execução de lógica com aplicação do controlador PID
+-- Controlar o posicionamento dos servomotores
 -	Potenciômetro – Componente eletrônico que possui resistência elétrica ajustável. Geralmente os mais utilizados em projetos são os que possuem derivação central, onde o mesmo é deslizante e manipulável. Os potenciômetros utilizados desempenham o papel de controle manual de posicionamento do conjunto, sendo que: o potenciômetro 01 realiza o controle horizontal e o potenciômetro 02 que realiza o controle vertical.
 -	Cabos do tipo Jump – Responsável pela transmissão de dados e corrente elétrica no projeto.
 -	Suporte para servomotores Pan Tilt: Plataforma móvel usada para diversas aplicações, entre elas: Instalação de pequenas câmeras, sensores diversos, aeromodelismo, etc. Em nosso projeto a Pan Tilt é equipada com os servomotores, o qual tem a função de movimentar o conjunto equipado com os LDR’s.
