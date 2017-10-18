@@ -1,3 +1,45 @@
+class calculoPID{
+public:
+  float error;
+  float sample;
+  float lastSample;
+  float kp, ki, kd;      
+  float P, I, D;
+  float setPoint;
+  unsigned long lastProcess;
+  
+  calculoPID(float _kp, float _ki, float _kd){
+    kp = _kp;
+    ki = _ki;
+    kd = _kd;
+    lastProcess = 0;
+  }
+  
+  void addNewSample(float _sample){
+    sample = _sample;
+  }
+  
+  void setSetPoint(float _setPoint){
+    setPoint = _setPoint;
+  }
+  
+  float pid(){
+    error = setPoint - sample;
+    unsigned long deltaTime = (millis() - lastProcess) / 1000.0;
+    lastProcess = millis();
+      
+    P = error * kp;    
+    I = I + (error * ki) * deltaTime;
+    D = (lastSample - sample) * kd / deltaTime;
+    
+    lastSample = sample;  
+    float somaPID = P + I + D;
+    
+    return somaPID;
+  }
+};
+
+
 #include <Servo.h>
 // o número do pino do botão
 const int buttonPin = 3;
@@ -25,11 +67,9 @@ float erroHorizontal = 0;
 float iVertical = 0;
 float iHorizontal = 0;
 
-
 float kpVertical = 0.0007;
 float kiVertical = 0.000045;
 float kdVertical = 0.15;
-
 
 float kpHorizontal = 0.0015;
 float kiHorizontal = 0.000045;
@@ -51,25 +91,23 @@ float leituraDireita = 0;
 Servo vertical;
 Servo horizontal;
 
+calculoPID pid_vertical(kpVertical, kiVertical, kdVertical);
+calculoPID pid_horizontal(kpHorizontal, kiHorizontal, kdHorizontal);
 
 void setup() {
   Serial.begin(9600);
-  pinMode(ledPin, OUTPUT);//pino de saida do led
-  pinMode(buttonPin, INPUT);//pino de entrada do botão
-  digitalWrite(buttonPin, HIGH);//aciona o resistor putt-up interno
+  pinMode(ledPin, OUTPUT); //pino de saida do led
+  pinMode(buttonPin, INPUT); //pino de entrada do botão
+  digitalWrite(buttonPin, HIGH); //aciona o resistor putt-up interno
   vertical.attach(6);
   horizontal.attach(5);
+  
+  pid_vertical.setSetPoint(0);
+  pid_horizontal.setSetPoint(0);
 }
 
-
 void loop() {
-  unsigned long t = millis();
-  int dt = t - TAnterior;
-  TAnterior = t;
-
-
   buttonState = digitalRead(buttonPin);// leia o estado do valor do botão de pressão:
-
 
   if (buttonState == HIGH) {   // verifique se o botão está pressionado
     digitalWrite(ledPin, HIGH);  // liga o LED:
@@ -85,7 +123,7 @@ void loop() {
     
   } else {
     
-    digitalWrite(ledPin, LOW);// desliga o LED:
+    digitalWrite(ledPin, LOW); // desliga o LED:
     leituraCima = analogRead(LDR_Cima);
     leituraCima = map(leituraCima, 10, 1019, 0, 100);
     leituraBaixo = analogRead(LDR_Baixo);
@@ -98,50 +136,14 @@ void loop() {
   }
 
 
-  float difVertical = leituraCima - leituraBaixo;
-  erroVertical = difVertical;
+  float erroVertical = leituraCima - leituraBaixo;
+  float erroHorizontal = leituraEsquerda - leituraDireita;
 
-  float pVertical = erroVertical * kpVertical;
-        iVertical = kiVertical * erroVertical * dt;
-  float dVertical = ((difVertical - difVerticalAnterior) * kdVertical) / dt;
-  difVerticalAnterior = difVertical;
+  pid_vertical.addNewSample(erroVertical);
+  pid_horizontal.addNewSample(erroHorizontal);
 
-
-  float difHorizontal = leituraEsquerda - leituraDireita;
-  erroHorizontal =  difHorizontal;
-
-  float pHorizontal = erroHorizontal * kpHorizontal;
-        iHorizontal = kiHorizontal * erroHorizontal * dt;
-  float dHorizontal = ((difHorizontal - difHorizontalAnterior) * kdHorizontal) / dt;
-  difHorizontalAnterior = difHorizontal;
-
-
-  grau_vertical += pVertical + iVertical + dVertical;
-  grau_horizontal += pHorizontal + iHorizontal + dHorizontal;
-
-
- /*  Serial.print("Esquerda = ");
-  Serial.print(leituraEsquerda);
-  Serial.print("      ");
-  Serial.print("Direita = ");
-  Serial.print(leituraDireita);
-  Serial.print("      ");
-  Serial.print("erroHorizontal = ");
-  Serial.print(difHorizontal);
-  Serial.print("      ");
-  Serial.print("pVertical = ");
-  Serial.print(pVertical);
-  Serial.print("      ");
-  Serial.print("iVertical = ");
-  Serial.print(iVertical);
-  Serial.print("      ");
-  Serial.print("dVertical = ");
-  Serial.print(dVertical);
-  Serial.print("      ");
-  Serial.print("grau_vertical = ");
-  Serial.print(grau_vertical);
-  Serial.println(" ");
-*/
+  grau_vertical += pid_vertical.pid();
+  grau_horizontal += pid_horizontal.pid();
 
   if (abs(difVertical) > 3 && grau_vertical < 65 && grau_vertical > 3) {
     vertical.write(int(grau_vertical));
