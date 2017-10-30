@@ -1,5 +1,4 @@
-# Controle-Digital
-Implementação de um controlador PID
+# Controle-Digital - Implementação de um controlador PID
 
 Projeto de pesquisa a ser apresentado e submetido à avaliação para elaboração de Trabalho acadêmico do Curso de Engenharia de Computação e Engenharia de Controle e Automação do Centro de Ciências Tecnológicas da Universidade de Fortaleza. 
 
@@ -64,6 +63,53 @@ O projeto foi montado conforme o diagrama esquemático abaixo:
 O diagrama de blocos do sistema consiste em duas partes, a analógica, que envolve o Arduino e o Setpoint definido dentro do programa, e a digital que é toda a parte mecânica do projeto.
 
 ![alt tag](https://raw.githubusercontent.com/Ricardo959/Controle-Digital/master/4.png)
+
+## IMPLEMENTAÇÃO
+
+A primeira versão do sistema usou um controlador PID simples para os primeiros testes. A classe calculoPID é inicializada com os parãmetros do kp, ki e kd. Os doid servomotores tem classes distintas com kp, ki e kd diferentes.
+
+```
+class calculoPID{
+public:
+  float error;
+  float sample;
+  float lastSample;
+  float kp, ki, kd;      
+  float P, I, D;
+  float setPoint;
+  unsigned long lastProcess;
+  
+  calculoPID(float _kp, float _ki, float _kd){
+    kp = _kp;
+    ki = _ki;
+    kd = _kd;
+    lastProcess = 0;
+  }
+  
+  void addNewSample(float _sample){
+    sample = _sample;
+  }
+  
+  void setSetPoint(float _setPoint){
+    setPoint = _setPoint;
+  }
+  
+  float pid(){
+    error = setPoint - sample;
+    unsigned long deltaTime = (millis() - lastProcess) / 1000.0;
+    lastProcess = millis();
+      
+    P = error * kp;    
+    I = I + (error * ki) * deltaTime;
+    D = (lastSample - sample) * kd / deltaTime;
+    
+    lastSample = sample;  
+    float somaPID = P + I + D;
+    
+    return somaPID;
+  }
+};
+```
 
 Abaixo seguem as planilhas das regressões dos potenciômetros e sensores com o gráfico referente à regressão dos quatro LDRs. O mapeamento dos sinais de entrada com conversão para entrada linear foi descartada porque consideramos o sinal de entrada como apenas a diferença da luminosidade entre dois LDRs de cada direção.
 
