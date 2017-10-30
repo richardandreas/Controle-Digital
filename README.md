@@ -55,13 +55,26 @@ Custo total: R$ 47,40
 ## EMBASAMENTO TEÓRICO
 O fluxograma a seguir apresenta o funcionamento lógico do seguidor solar:
 
+![alt tag](https://github.com/Ricardo959/Controle-Digitalb/master/2.png?raw=true)
+
 O projeto foi montado conforme o diagrama esquemático abaixo:
+
+![alt tag](https://github.com/Ricardo959/Controle-Digital/master/3.jpg?raw=true)
 
 O diagrama de blocos do sistema consiste em duas partes, a analógica, que envolve o Arduino e o Setpoint definido dentro do programa, e a digital que é toda a parte mecânica do projeto.
 
-Abaixo seguem graficos com regressão dos potenciômetros e sensores. O mapeamento dos sinais de entrada com conversão para entrada linear foi descartada porque consideramos o sinal de entrada como apenas a diferença da luminosidade entre dois LDRs de cada direção.
+![alt tag](https://github.com/Ricardo959/Controle-Digital/master/4.jpg?raw=true)
+
+Abaixo seguem as planilhas das regressões dos potenciômetros e sensores com o gráfico referente à regressão dos quatro LDRs. O mapeamento dos sinais de entrada com conversão para entrada linear foi descartada porque consideramos o sinal de entrada como apenas a diferença da luminosidade entre dois LDRs de cada direção.
+
+![alt tag](https://github.com/Ricardo959/Controle-Digital/master/7.jpg?raw=true)
+![alt tag](https://github.com/Ricardo959/Controle-Digital/master/8.jpg?raw=true)
+![alt tag](https://github.com/Ricardo959/Controle-Digital/master/5.jpg?raw=true)
+![alt tag](https://github.com/Ricardo959/Controle-Digital/master/4.jpg?raw=true)
 
 ## CONCLUSÃO
 Com a crescente demanda de energias renováveis mais eficientes no mercado, o sistema de seguidor solar será concebido como uma solução muito benéfica.
 
 O protótipo de seguidor solar o qual desenvolvemos é caracterizado pela a simplicidade e pela versatilidade de sua implementação, podendo ser facilmente empregado em sistemas reais de projetos de energia fotovoltaica. Com tudo existem claras limitações para o emprego real, pois dependendo das proporções do projeto, pode tornar-se algo relativamente inviável devido ao alto de custo de seu emprego, isso por conta da produção em escala dos equipamentos necessários para a automatização.
+
+![alt tag](https://github.com/Ricardo959/Controle-Digital/master/9.jpg?raw=true)
