@@ -10,6 +10,8 @@ Com o intermédio de todos os atuadores, controladores e sensores, será propost
 
 O principal diferencial desse sistema comparado ao sistema convencional é o ganho de qualidade e produtividade na geração de energia solar, pois os painéis estarão sempre posicionados verticalmente para o sol. O gráfico a seguir mostra a eficiência na produção de energia dos dois sistemas:
 
+![alt tag](https://raw.githubusercontent.com/Ricardo959/Controle-Digital/master/1.png)
+
 ## METODOLOGIA
 Em nosso projeto os únicos atuadores existentes são os Servo motores. O modelo dos Servo motores usados foram o Tower Pro 9g. Os sensores utilizados foram quatro LDRs (Light Dependent Resistor). O controlador usado no projeto foi o Arduino UNO, onde o mesmo possui as seguintes especificações técnicas: 
 •	Ultiliza microcontrolador Atmel
