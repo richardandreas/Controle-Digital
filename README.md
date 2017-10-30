@@ -66,7 +66,7 @@ O diagrama de blocos do sistema consiste em duas partes, a analógica, que envol
 
 ## IMPLEMENTAÇÃO
 
-A primeira versão do sistema usou um controlador PID simples para os primeiros testes. A classe calculoPID é inicializada com os parãmetros do kp, ki e kd. Os doid servomotores tem classes distintas com kp, ki e kd diferentes.
+A primeira versão do sistema usou um controlador PID simples para os primeiros testes. A classe calculoPID é inicializada com os parãmetros do kp, ki e kd. Os dois servomotores tem classes distintas com kp, ki e kd diferentes.
 
 ```
 class calculoPID{
