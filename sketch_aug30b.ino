@@ -1,5 +1,5 @@
 class calculoPID{
-public:
+private:
   float error;
   float sample;
   float lastSample;
@@ -9,19 +9,20 @@ public:
   float setPoint;
   unsigned long lastTime;
 
-  //Variaveis Sample Time
+  // Variaveis Sample Time
   
   int sampleTime;
   float sumError;
   float lastError;
 
+public:
   calculoPID(float _kp, float _ki, float _kd, float _setPoint) {
     kp = _kp;
     ki = _ki;
     kd = _kd;
     setPoint = _setPoint;
     lastTime = 0;
-    sampleTime = 1000;
+    sampleTime = 1;
     I = 0;
   }
   
@@ -47,26 +48,41 @@ public:
     return sumPID;
   }
 
-  //Funções Sample Time
+  // Funções Sample Time
   
   void setSampleTime(int _sampleTime) {
     sampleTime = _sampleTime;
-    ki = ki * ((double)sampleTime / 1000);
-    kd = kd / ((double)sampleTime / 1000);
+    ki = ki * ((float)sampleTime / 1000);
+    kd = kd / ((float)sampleTime / 1000);
   }
 
   void ComputeST() {
     unsigned long now = millis();
     int timeChange = (now - lastTime);
     if(timeChange >= sampleTime){
-      double error = setPoint - sample;
+      float error = setPoint - sample;
       sumError += error;
-      double dErr = (error - lastError);
+      float dErr = (error - lastError);
       sumPID = kp * error + ki * sumError + kd * dErr;
       lastError = error;
       lastTime = now;
+    }
   }
-}
+
+  // Funções Derivative Kick
+
+  void ComputeDK() {
+    unsigned long now = millis();
+    int timeChange = (now - lastTime);
+    if(timeChange >= sampleTime){
+      float error = setPoint - sample;
+      sumError += error;
+      float dErr = (sample - lastSample);
+      sumPID = kp * error + ki * sumError + kd * dErr;
+      lastSample = sample;
+      lastTime = now;
+    }
+  }
 
 void SetSampleTime(int NewSampleTime) {
   if (NewSampleTime > 0) {
@@ -108,13 +124,13 @@ float erroHorizontal = 0;
 float iVertical = 0;
 float iHorizontal = 0;
 
-float kpVertical = 0.2;
-float kiVertical = 0.000001;
-float kdVertical = 0.0001;
+float kpVertical = 0.3;
+float kiVertical = 0.0001; // Quanto maior o ki, mais lento a reação do servo
+float kdVertical = 0.01; // Quanto maior o kd, mais instável o movimento do servo
 
-float kpHorizontal = 0.2;
-float kiHorizontal = 0.000001;
-float kdHorizontal = 0.0001;
+float kpHorizontal = 0.3;
+float kiHorizontal = 0.0001;
+float kdHorizontal = 0.01;
 
 
 unsigned long TAnterior = 0;
@@ -184,8 +200,8 @@ void loop() {
   pid_horizontal.addNewSample(erroHorizontal);
   pid_horizontal.Compute();
 
-  pid_vertical.ComputeST();
-  pid_horizontal.ComputeST();
+  pid_vertical.ComputeDK();
+  pid_horizontal.ComputeDK();
 
   grau_vertical = grau_vertical + pid_vertical.pid();
   grau_horizontal = grau_horizontal + pid_horizontal.pid();
