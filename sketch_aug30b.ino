@@ -5,39 +5,76 @@ public:
   float lastSample;
   float kp, ki, kd;      
   float P, I, D;
-  float somaPID;
+  float sumPID;
   float setPoint;
-  unsigned long tAnterior;
+  unsigned long lastTime;
+
+  //Variaveis Sample Time
   
+  int sampleTime;
+  float sumError;
+  float lastError;
+
   calculoPID(float _kp, float _ki, float _kd, float _setPoint) {
     kp = _kp;
     ki = _ki;
     kd = _kd;
     setPoint = _setPoint;
-    tAnterior = 0;
+    lastTime = 0;
+    sampleTime = 1000;
     I = 0;
   }
   
   void addNewSample(float _sample) {
     sample = _sample;
+  }
+
+  void Compute() {
     error = setPoint - sample;
 
     unsigned long t = millis();
-    int dt = t - tAnterior;
-    tAnterior = t;
+    int dt = t - lastTime;
+    lastTime = t;
       
     P = error * kp;    
     I = I + (error * ki) * dt;
     D = (lastSample - sample) * kd / dt;
-    
+    sumPID = P + I + D;
     lastSample = sample; 
   }
   
   float pid() {
-     
-    somaPID = P + I + D;
-    
-    return somaPID;
+    return sumPID;
+  }
+
+  //Funções Sample Time
+  
+  void setSampleTime(int _sampleTime) {
+    sampleTime = _sampleTime;
+    ki = ki * ((double)sampleTime / 1000);
+    kd = kd / ((double)sampleTime / 1000);
+  }
+
+  void ComputeST() {
+    unsigned long now = millis();
+    int timeChange = (now - lastTime);
+    if(timeChange >= sampleTime){
+      double error = setPoint - sample;
+      sumError += error;
+      double dErr = (error - lastError);
+      sumPID = kp * error + ki * sumError + kd * dErr;
+      lastError = error;
+      lastTime = now;
+  }
+}
+
+void SetSampleTime(int NewSampleTime) {
+  if (NewSampleTime > 0) {
+    double ratio = (double)NewSampleTime / (double)sampleTime;
+    ki *= ratio;
+    kd /= ratio;
+    sampleTime = (unsigned long)NewSampleTime;
+    }
   }
 };
 
@@ -105,6 +142,9 @@ void setup() {
   digitalWrite(buttonPin, HIGH); //aciona o resistor putt-up interno
   vertical.attach(6);
   horizontal.attach(5);
+
+  pid_vertical.setSampleTime(50);
+  pid_horizontal.setSampleTime(50);
 }
 
 void loop() {
@@ -136,12 +176,16 @@ void loop() {
     leituraDireita = map(leituraDireita, 10, 1019, 0, 100);
   }
 
-
   float erroVertical =  leituraBaixo - leituraCima;
   float erroHorizontal =  leituraDireita - leituraEsquerda;
 
   pid_vertical.addNewSample(erroVertical);
+  pid_vertical.Compute();
   pid_horizontal.addNewSample(erroHorizontal);
+  pid_horizontal.Compute();
+
+  pid_vertical.ComputeST();
+  pid_horizontal.ComputeST();
 
   grau_vertical = grau_vertical + pid_vertical.pid();
   grau_horizontal = grau_horizontal + pid_horizontal.pid();
