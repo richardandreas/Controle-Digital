@@ -1,97 +1,99 @@
-class calculoPID{
-private:
-  float error;
-  float sample;
-  float lastSample;
-  float kp, ki, kd;      
-  float P, I, D;
-  float sumPID;
-  float setPoint;
-  unsigned long lastTime;
+class calculoPID {
+  private:
+    float error;
+    float sample;
+    float lastSample;
+    float kp, ki, kd;
+    float P, I, D;
+    float sumPID;
+    float setPoint;
+    unsigned long lastTime;
 
-  // Variaveis Sample Time
-  
-  int sampleTime;
-  float sumError;
-  float lastError;
+    // Variaveis Sample Time
 
-public:
-  calculoPID(float _kp, float _ki, float _kd, float _setPoint) {
-    kp = _kp;
-    ki = _ki;
-    kd = _kd;
-    setPoint = _setPoint;
-    lastTime = 0;
-    sampleTime = 1;
-    I = 0;
-  }
-  
-  void addNewSample(float _sample) {
-    sample = _sample;
-  }
+    int sampleTime;
+    float sumError;
+    float lastError;
 
-  void Compute() {
-    error = setPoint - sample;
-
-    unsigned long t = millis();
-    int dt = t - lastTime;
-    lastTime = t;
-      
-    P = error * kp;    
-    I = I + (error * ki) * dt;
-    D = (lastSample - sample) * kd / dt;
-    sumPID = P + I + D;
-    lastSample = sample; 
-  }
-  
-  float pid() {
-    return sumPID;
-  }
-
-  // Funções Sample Time
-  
-  void setSampleTime(int _sampleTime) {
-    sampleTime = _sampleTime;
-    ki = ki * ((float)sampleTime / 1000);
-    kd = kd / ((float)sampleTime / 1000);
-  }
-
-  void ComputeST() {
-    unsigned long now = millis();
-    int timeChange = (now - lastTime);
-    if(timeChange >= sampleTime){
-      float error = setPoint - sample;
-      sumError += error;
-      float dErr = (error - lastError);
-      sumPID = kp * error + ki * sumError + kd * dErr;
-      lastError = error;
-      lastTime = now;
+  public:
+    calculoPID(float _kp, float _ki, float _kd, float _setPoint) {
+      kp = _kp;
+      ki = _ki;
+      kd = _kd;
+      setPoint = _setPoint;
+      lastTime = 0;
+      sampleTime = 1;
+      I = 0;
     }
-  }
 
-  // Funções Derivative Kick
+    void addNewSample(float _sample) {
+      sample = _sample;
+    }
 
-  void ComputeDK() {
-    unsigned long now = millis();
-    int timeChange = (now - lastTime);
-    if(timeChange >= sampleTime){
-      float error = setPoint - sample;
-      sumError += error;
-      float dErr = (sample - lastSample);
-      sumPID = kp * error + ki * sumError + kd * dErr;
+    void Compute() {
+      error = setPoint - sample;
+
+      unsigned long t = millis();
+      int dt = t - lastTime;
+      lastTime = t;
+
+      P = error * kp;
+      I = I + (error * ki) * dt;
+      D = (lastSample - sample) * kd / dt;
+      sumPID = P + I + D;
       lastSample = sample;
-      lastTime = now;
     }
-  }
 
-void SetSampleTime(int NewSampleTime) {
-  if (NewSampleTime > 0) {
-    double ratio = (double)NewSampleTime / (double)sampleTime;
-    ki *= ratio;
-    kd /= ratio;
-    sampleTime = (unsigned long)NewSampleTime;
+    float pid() {
+      return sumPID;
     }
-  }
+
+    // Funções Sample Time
+
+    void SetTuningsForSampleTime(float _sampleTime) {
+      sampleTime = _sampleTime;
+      ki = ki * ((float)sampleTime / 1000);
+      kd = kd / ((float)sampleTime / 1000);
+    }
+
+    void ComputeSampleTime() {
+      unsigned long now = millis();
+      int timeChange = (now - lastTime);
+      if (timeChange >= sampleTime) {
+        float error = setPoint - sample;
+        sumError += error;
+        float dErr = (error - lastError);
+        sumPID = kp * error + ki * sumError + kd * dErr;
+        lastError = error;
+        lastTime = now;
+      }
+    }
+
+    // Funções Derivative Kick
+
+    void ComputeDerivativeKick() {
+      unsigned long now = millis();
+      int timeChange = (now - lastTime);
+      if (timeChange >= sampleTime) {
+        float error = setPoint - sample;
+        sumError += error;
+        float dErr = (sample - lastSample);
+        sumPID = kp * error + ki * sumError + kd * dErr;
+        lastSample = sample;
+        lastTime = now;
+      }
+    }
+
+    void SetSampleTime(int NewSampleTime) {
+      if (NewSampleTime > 0) {
+        float ratio = (float)NewSampleTime / (float)sampleTime;
+        ki *= ratio;
+        kd /= ratio;
+        sampleTime = (float)NewSampleTime;
+      }
+    }
+
+
 };
 
 
@@ -159,8 +161,8 @@ void setup() {
   vertical.attach(6);
   horizontal.attach(5);
 
-  pid_vertical.setSampleTime(50);
-  pid_horizontal.setSampleTime(50);
+  pid_vertical.SetTuningsForSampleTime(50);
+  pid_horizontal.SetTuningsForSampleTime(50);
 }
 
 void loop() {
@@ -177,9 +179,9 @@ void loop() {
     vpont2 = map(vpont2, 0, 1020, 0, 100);
     leituraDireita = vpont2;
     leituraEsquerda = 100 - leituraDireita;
-    
+
   } else {
-    
+
     digitalWrite(ledPin, LOW); // desliga o LED:
     leituraCima = analogRead(LDR_Cima);
     leituraCima = map(leituraCima, 10, 1019, 0, 100);
@@ -200,8 +202,8 @@ void loop() {
   pid_horizontal.addNewSample(erroHorizontal);
   pid_horizontal.Compute();
 
-  pid_vertical.ComputeDK();
-  pid_horizontal.ComputeDK();
+  pid_vertical.ComputeDerivativeKick();
+  pid_horizontal.ComputeDerivativeKick();
 
   grau_vertical = grau_vertical + pid_vertical.pid();
   grau_horizontal = grau_horizontal + pid_horizontal.pid();
@@ -241,7 +243,7 @@ void loop() {
     horizontal.write(int(grau_horizontal));
     horizontal.detach();
   } else if (!horizontal.attached()) {
-      horizontal.attach(servoHorizontalPin);
+    horizontal.attach(servoHorizontalPin);
   }
 
   //Checagem de diferença e escrita no servo
