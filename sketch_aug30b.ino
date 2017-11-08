@@ -15,6 +15,10 @@ class calculoPID {
     float sumError;
     float lastError;
 
+    // Variaveis Reset Windup
+
+    float outMin, outMax;
+
   public:
     calculoPID(float _kp, float _ki, float _kd, float _setPoint) {
       kp = _kp;
@@ -48,17 +52,33 @@ class calculoPID {
       return sumPID;
     }
 
+    void SetTunings(float _kp, float _ki, float _kd) {
+      kp = _kp;
+      ki = _ki;
+      kd = _kd;
+    }
+
     // Funções Sample Time
 
-    void SetTuningsForSampleTime(float _sampleTime) {
+    void SetTuningsST(float _sampleTime) {
       sampleTime = _sampleTime;
       ki = ki * ((float)sampleTime / 1000);
       kd = kd / ((float)sampleTime / 1000);
     }
 
-    void ComputeSampleTime() {
+    void SetSampleTime(int NewSampleTime) {
+      if (NewSampleTime > 0) {
+        float ratio = (float)NewSampleTime / (float)sampleTime;
+        ki *= ratio;
+        kd /= ratio;
+        sampleTime = (float)NewSampleTime;
+      }
+    }
+
+    void ComputeST() {
       unsigned long now = millis();
       int timeChange = (now - lastTime);
+
       if (timeChange >= sampleTime) {
         float error = setPoint - sample;
         sumError += error;
@@ -71,9 +91,10 @@ class calculoPID {
 
     // Funções Derivative Kick
 
-    void ComputeDerivativeKick() {
+    void ComputeDK() {
       unsigned long now = millis();
       int timeChange = (now - lastTime);
+
       if (timeChange >= sampleTime) {
         float error = setPoint - sample;
         sumError += error;
@@ -84,16 +105,49 @@ class calculoPID {
       }
     }
 
-    void SetSampleTime(int NewSampleTime) {
-      if (NewSampleTime > 0) {
-        float ratio = (float)NewSampleTime / (float)sampleTime;
-        ki *= ratio;
-        kd /= ratio;
-        sampleTime = (float)NewSampleTime;
+    // Funções Reset Windup
+
+    void ComputeRW() {
+      unsigned long now = millis();
+      int timeChange = (now - lastTime);
+
+      if (timeChange >= sampleTime) {
+        float error = setPoint - sample;
+        sumError += (ki * error);
+        if (sumError > outMax) {
+          sumError = outMax;
+        } else if (sumError < outMin) {
+          sumError = outMin;
+        }
+        float dErr = (sample - lastSample);
+        sumPID = kp * error + ki * sumError + kd * dErr;
+        if (sumPID > outMax) {
+          sumPID = outMax;
+        } else if (sumError < outMin) {
+          sumPID = outMin;
+        }
+        lastSample = sample;
+        lastTime = now;
       }
     }
 
+    void SetOutputLimits(float Min, float Max)
+    {
+      if (Min > Max) return;
+      outMin = Min;
+      outMax = Max;
 
+      if (sumError > outMax) {
+          sumError = outMax;
+        } else if (sumError < outMin) {
+          sumError = outMin;
+        }
+      if (sumPID > outMax) {
+          sumPID = outMax;
+        } else if (sumError < outMin) {
+          sumPID = outMin;
+        }
+    }
 };
 
 
@@ -161,8 +215,11 @@ void setup() {
   vertical.attach(6);
   horizontal.attach(5);
 
-  pid_vertical.SetTuningsForSampleTime(50);
-  pid_horizontal.SetTuningsForSampleTime(50);
+  pid_vertical.SetTuningsST(50);
+  pid_horizontal.SetTuningsST(50);
+  
+  pid_vertical.SetOutputLimits(-5, 5);
+  pid_horizontal.SetOutputLimits(-5, 5);
 }
 
 void loop() {
@@ -202,14 +259,14 @@ void loop() {
   pid_horizontal.addNewSample(erroHorizontal);
   pid_horizontal.Compute();
 
-  pid_vertical.ComputeDerivativeKick();
-  pid_horizontal.ComputeDerivativeKick();
+  pid_vertical.ComputeRW();
+  pid_horizontal.ComputeRW();
 
   grau_vertical = grau_vertical + pid_vertical.pid();
   grau_horizontal = grau_horizontal + pid_horizontal.pid();
 
-
   //Checagem de limite de angulo
+
   if (grau_vertical > 65) {
     grau_vertical = 65;
     vertical.write(int(grau_vertical));
@@ -223,6 +280,7 @@ void loop() {
   }
 
   //Checagem de diferença e escrita no servo
+
   if (abs(erroVertical) > 3) {
     if (!vertical.attached()) {
       vertical.attach(servoVerticalPin);
@@ -232,8 +290,8 @@ void loop() {
     vertical.detach();
   }
 
-
   //Checagem de limite de angulo
+
   if (grau_horizontal > 175) {
     grau_horizontal = 175;
     horizontal.write(int(grau_horizontal));
@@ -247,6 +305,7 @@ void loop() {
   }
 
   //Checagem de diferença e escrita no servo
+
   if (abs(erroHorizontal) > 3) {
     if (!horizontal.attached()) {
       horizontal.attach(servoHorizontalPin);
