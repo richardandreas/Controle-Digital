@@ -138,15 +138,15 @@ class calculoPID {
       outMax = Max;
 
       if (sumError > outMax) {
-          sumError = outMax;
-        } else if (sumError < outMin) {
-          sumError = outMin;
-        }
+        sumError = outMax;
+      } else if (sumError < outMin) {
+        sumError = outMin;
+      }
       if (sumPID > outMax) {
-          sumPID = outMax;
-        } else if (sumError < outMin) {
-          sumPID = outMin;
-        }
+        sumPID = outMax;
+      } else if (sumError < outMin) {
+        sumPID = outMin;
+      }
     }
 };
 
@@ -217,7 +217,7 @@ void setup() {
 
   pid_vertical.SetTuningsST(50);
   pid_horizontal.SetTuningsST(50);
-  
+
   pid_vertical.SetOutputLimits(-5, 5);
   pid_horizontal.SetOutputLimits(-5, 5);
 }
@@ -229,13 +229,13 @@ void loop() {
     digitalWrite(ledPin, HIGH);  // liga o LED:
 
     vpont1 = analogRead(pont1);  //capturando valores analogicos de cada Potenciometro
-    vpont1 = map(vpont1, 0, 1020, 0, 100);
-    leituraCima = vpont1;
-    leituraBaixo = 100 - leituraCima;
+    vpont1 = map(vpont1, 0, 1020, 3, 65);
+
     vpont2 = analogRead(pont2);
-    vpont2 = map(vpont2, 0, 1020, 0, 100);
-    leituraDireita = vpont2;
-    leituraEsquerda = 100 - leituraDireita;
+    vpont2 = map(vpont2, 0, 1020, 4, 175);
+
+    erroVertical = grau_vertical - vpont1;
+    erroHorizontal = grau_horizontal - vpont2;
 
   } else {
 
@@ -249,10 +249,10 @@ void loop() {
     leituraEsquerda = map(leituraEsquerda, 10, 1019, 0, 100);
     leituraDireita = analogRead(LDR_Direita);
     leituraDireita = map(leituraDireita, 10, 1019, 0, 100);
-  }
 
-  float erroVertical =  leituraBaixo - leituraCima;
-  float erroHorizontal =  leituraDireita - leituraEsquerda;
+    erroVertical =  leituraBaixo - leituraCima;
+    erroHorizontal =  leituraDireita - leituraEsquerda;
+  }
 
   pid_vertical.addNewSample(erroVertical);
   pid_vertical.Compute();
@@ -321,8 +321,8 @@ void loop() {
   Serial.print("grau_vertical = ");
   Serial.print(grau_vertical);
   Serial.print("      ");
-  Serial.print("grau_horizontal = ");
-  Serial.print(grau_horizontal);
+  Serial.print("leituraCima = ");
+  Serial.print(leituraCima);
   Serial.print("      ");
   Serial.print("pidVertical = ");
   Serial.println(pid_vertical.pid());
