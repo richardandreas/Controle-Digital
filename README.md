@@ -63,3 +63,8 @@ Abaixo seguem graficos com regressão dos potenciômetros e sensores. O mapeamen
 Com a crescente demanda de energias renováveis mais eficientes no mercado, o sistema de seguidor solar será concebido como uma solução muito benéfica.
 
 O protótipo de seguidor solar o qual desenvolvemos é caracterizado pela a simplicidade e pela versatilidade de sua implementação, podendo ser facilmente empregado em sistemas reais de projetos de energia fotovoltaica. Com tudo existem claras limitações para o emprego real, pois dependendo das proporções do projeto, pode tornar-se algo relativamente inviável devido ao alto de custo de seu emprego, isso por conta da produção em escala dos equipamentos necessários para a automatização.
+
+Com a implementação do controlador PID foi visivelmente notório a redução de erros de posicionamento, comparados a sistemas que não utilizam essa técnica de controle em seu conjunto. Notou-se também suavidade em seu posicionamento reduzindo obviamente desgastes tanto do suporte, quanto dos servomotores.
+
+No entanto os controladores integral e derivativo foram menos atuantes no processo, sendo observado uma maior atuação por parte do controlador proporcional. O controlador proporcional trouxe velocidade ao processo, o controlador integrativo fez com o que o sistema reduzisse a sua velocidade quando aproximava-se do setpoint, o controlador diferencial trouxe estabilidade ao sistema.
+
