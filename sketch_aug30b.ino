@@ -148,6 +148,17 @@ class calculoPID {
         sumPID = outMin;
       }
     }
+
+    //retornar valores
+    void retornp() {
+      return kp;
+    }
+    void retorni() {
+      return ki;
+    }
+    void retornd() {
+      return kd;
+    }
 };
 
 
@@ -156,6 +167,8 @@ class calculoPID {
 const int buttonPin = 3;
 // o número do pino LED
 const int ledPin =  4;
+const int led1 = 7;
+const int led2 = 8;
 // variável para ler o status do botão de pressão
 int buttonState = 0;
 
@@ -181,12 +194,12 @@ float iVertical = 0;
 float iHorizontal = 0;
 
 float kpVertical = 0.3;
-float kiVertical = 0.0001; // Quanto maior o ki, mais lento a reação do servo
-float kdVertical = 0.01; // Quanto maior o kd, mais instável o movimento do servo
+float kiVertical = 0.00001; // Quanto maior o ki, mais lento a reação do servo
+float kdVertical = 0.001; // Quanto maior o kd, mais instável o movimento do servo
 
 float kpHorizontal = 0.3;
-float kiHorizontal = 0.0001;
-float kdHorizontal = 0.01;
+float kiHorizontal = 0.00001;
+float kdHorizontal = 0.001;
 
 
 unsigned long TAnterior = 0;
@@ -207,10 +220,78 @@ Servo horizontal;
 calculoPID pid_vertical(kpVertical, kiVertical, kdVertical, 0);
 calculoPID pid_horizontal(kpHorizontal, kiHorizontal, kdHorizontal, 0);
 
+float _P, _I, _D, p, i, d;
+char lerpid, inByte;
+
+void LER() {
+ // i = pid_vertical.retorni();
+ // p = pid_vertical.retornp();
+ // d = pid_vertical.retornd();
+  switch (inByte) {
+    case 'p':
+      digitalWrite(led1, HIGH);
+      Serial.println("Digite um valor para P: ");
+      delay(6000);
+      p = _P;
+      _P = Serial.parseFloat();
+      Serial.println(" ");
+      Serial.print("Valor anterio: ");
+      Serial.print(p, 8);
+      Serial.print("  Novo Valor: ");
+      Serial.print(_P, 8);
+      Serial.println(" ");
+      return _P;
+      break;
+    case 'i':
+      digitalWrite(led2, HIGH);
+      Serial.println("Digite um valor para I: ");
+      delay(6000);
+      i = _I;
+      _I = Serial.parseFloat();
+      Serial.println(" ");
+      Serial.print("Valor anterio: ");
+      Serial.print(i, 8);
+      Serial.print("  Novo Valor: ");
+      Serial.print(_I, 8);
+      Serial.println(" ");
+      return _I;
+      break;
+    case 'd':
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      Serial.println("Digite um valor para D: ");
+      delay(6000);
+      d = _D;
+      _D = Serial.parseFloat();
+      Serial.println(" ");
+      Serial.print("Valor anterio: ");
+      Serial.print(d, 8);
+      Serial.print("  Novo Valor: ");
+      Serial.print(_D, 8);
+      Serial.println(" ");
+      return _D;
+      break;
+    default:
+      for (int leddelay = 0; leddelay != 10; leddelay ++) {
+        digitalWrite(led1, LOW);
+        digitalWrite(led2, LOW);
+        delay(50);
+        digitalWrite(led1, HIGH);
+        digitalWrite(led2, HIGH);
+        delay(50);
+        digitalWrite(led1, LOW);
+        digitalWrite(led2, LOW);
+      }
+      break;
+  }
+}
+
 void setup() {
   Serial.begin(9600);
   pinMode(ledPin, OUTPUT); //pino de saida do led
   pinMode(buttonPin, INPUT); //pino de entrada do botão
+  pinMode(led1, OUTPUT);
+  pinMode(led2, OUTPUT);
   digitalWrite(buttonPin, HIGH); //aciona o resistor putt-up interno
   vertical.attach(6);
   horizontal.attach(5);
@@ -313,6 +394,22 @@ void loop() {
     horizontal.write(int(grau_horizontal));
   } else {
     horizontal.detach();
+  }
+
+  // entrada de valores para p i d
+  if (Serial.available() > 0) {
+    lerpid = Serial.read();
+    if (lerpid == 'l') {
+      Serial.println("Selecione: p || i || d");
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      delay(1000);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      delay(2000);
+      inByte = Serial.read();
+      LER();
+    }
   }
 
   Serial.print("erroVertical = ");
