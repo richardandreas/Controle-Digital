@@ -225,10 +225,29 @@ class calculoPID {
           break;
       }
     }
-
+   void SetMode(int Mode)
+   {
+     int NewState = Mode;
+     int LastState = LOW;
+     if(NewState == LOW && !LastState == LOW)
+     {
+       Initialize();
+     }
+     LastState = NewState;
+   }
+   void Initialize()
+   {
+     lastesample = sample;
+     sumPID = sumError;
+     if(sumPID > OutMax)
+     {
+       sumPID = OutMax;
+     }
+     else if(sumPID < outMin)
+     {
+       sumPID = OutMin;
+     }        
 };
-
-
 #include <Servo.h>
 // o número do pino do botão
 const int buttonPin = 3;
@@ -308,6 +327,7 @@ void setup() {
 
 void loop() {
   buttonState = digitalRead(buttonPin); // leia o estado do valor do botão de pressão:
+  pid_vertical.SetMode(buttonState);  // Fornece o Status do botão para a função SetMode
 
   if (buttonState == HIGH) {   // verifique se o botão está pressionado
     digitalWrite(ledPin, HIGH);  // liga o LED:
