@@ -118,6 +118,16 @@ Abaixo seguem as planilhas das regressões dos potenciômetros e sensores com o 
 ![alt tag](https://raw.githubusercontent.com/Ricardo959/Controle-Digital/master/6.png)
 ![alt tag](https://raw.githubusercontent.com/Ricardo959/Controle-Digital/master/5.png)
 
+Melhorias implementadas
+* SampleTime
+  Faz que o PID seja aplicado ao sistema em tempos regulares, como em nosso caso 50ms, ou seja, o sistema fica sempre atualizado com as melhorias do PID
+* Derivate Kick
+  O principal objetivo dessa melhoria é eliminar o fenômeno conhecido como derivate kick, que nada mais é pico que ocorrem na saida e que estão diretamente ligados a entrada
+* Tuning Changes
+  Capacidade que o sistema ganhou de poder alterar Kp, Ki e Kd com o sistema ainda em execução
+* Reset Windup
+  Com limites de saídas já estabelecidos o Reset Windup evita que o sistema ultrapasse valores não suportados pelo conjunto
+  
 ## CONCLUSÃO
 Com a crescente demanda de energias renováveis mais eficientes no mercado, o sistema de seguidor solar será concebido como uma solução muito benéfica.
 
