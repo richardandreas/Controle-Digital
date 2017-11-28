@@ -65,8 +65,8 @@ O diagrama de blocos do sistema consiste em duas partes, a analógica, que envol
 ![alt tag](https://raw.githubusercontent.com/Ricardo959/Controle-Digital/master/4.png)
 
 ## IMPLEMENTAÇÃO
-
-A primeira versão do sistema usou um controlador PID simples para os primeiros testes. A classe calculoPID é inicializada com os parãmetros do kp, ki e kd. Os dois servomotores tem classes distintas com kp, ki e kd diferentes.
+### Inicialização
+Visando a reusabilidade, decidimos implementar o controlador PID como uma classe no Arduino. A primeira versão do sistema usou um controlador PID simples. Este facilitou a realização dos primeiros testes.
 
 ```
 class calculoPID{
@@ -111,22 +111,144 @@ public:
 };
 ```
 
-Abaixo seguem as planilhas das regressões dos potenciômetros e sensores com o gráfico referente à regressão dos quatro LDRs. O mapeamento dos sinais de entrada com conversão para entrada linear foi descartada porque consideramos o sinal de entrada como apenas a diferença da luminosidade entre dois LDRs de cada direção.
+A classe calculoPID é inicializada com os parãmetros kp, ki e kd, as 3 constantes do PID. Os dois servomotores tem classes distintas, pois cada direção de movimento do painel solar necessita seu próprio PID.
+
+```
+#include <Servo.h>
+
+float kpVertical = 0.3;
+float kiVertical = 0.00001;
+float kdVertical = 0.0001;
+
+float kpHorizontal = 0.3;
+float kiHorizontal = 0.00001;
+float kdHorizontal = 0.0001;
+
+Servo vertical;
+Servo horizontal;
+
+calculoPID pid_vertical(kpVertical, kiVertical, kdVertical, 0);
+calculoPID pid_horizontal(kpHorizontal, kiHorizontal, kdHorizontal, 0);
+```
+
+### Melhorias
+Cada melhoria no código tem sua própria função para o cálculo. Assim, ao usar a classe é possível fazer testes com cada malhoria mudando apenas o "Compute". As melhorias implementadas são as seguintes:
+
+* SampleTime: Faz que o PID seja aplicado ao sistema em tempos regulares, como em nosso caso 50ms, ou seja, o sistema fica sempre atualizado com as melhorias do PID;
+
+  ```
+  void ComputeST() {
+      unsigned long now = millis();
+      int timeChange = (now - lastTime);
+
+      if (timeChange >= sampleTime) {
+        float error = setPoint - sample;
+        sumError += error;
+        float dErr = (error - lastError);
+        sumPID = kp * error + ki * sumError + kd * dErr;
+        lastError = error;
+        lastTime = now;
+      }
+    }
+    
+    void SetTuningsST(float _sampleTime) {
+      sampleTime = _sampleTime;
+      ki = ki * ((float)sampleTime / 1000);
+      kd = kd / ((float)sampleTime / 1000);
+    }
+
+    void SetSampleTime(int NewSampleTime) {
+      if (NewSampleTime > 0) {
+        float ratio = (float)NewSampleTime / (float)sampleTime;
+        ki *= ratio;
+        kd /= ratio;
+        sampleTime = (float)NewSampleTime;
+      }
+    }
+  ```
+  
+* Derivate Kick: O principal objetivo dessa melhoria é eliminar o fenômeno conhecido como derivate kick, que nada mais é pico que ocorrem na saida e que estão diretamente ligados a entrada;
+
+  ```
+  void ComputeDK() {
+      unsigned long now = millis();
+      int timeChange = (now - lastTime);
+
+      if (timeChange >= sampleTime) {
+        float error = setPoint - sample;
+        sumError += error;
+        float dErr = (sample - lastSample);
+        sumPID = kp * error + ki * sumError + kd * dErr;
+        lastSample = sample;
+        lastTime = now;
+      }
+    }
+  ```
+  
+* Tuning Changes: Capacidade que o sistema ganhou de poder alterar Kp, Ki e Kd com o sistema ainda em execução;
+
+  ```
+  void SetTunings(float _kp, float _ki, float _kd) {
+      kp = _kp;
+      ki = _ki;
+      kd = _kd;
+    }
+  ```
+  
+* Reset Windup
+  Com limites de saídas já estabelecidos o Reset Windup evita que o sistema ultrapasse valores não suportados pelo conjunto.
+  
+  ```
+   void ComputeRW() {
+      unsigned long now = millis();
+      int timeChange = (now - lastTime);
+
+      if (timeChange >= sampleTime) {
+        float error = setPoint - sample;
+        sumError += (ki * error);
+        if (sumError > outMax) {
+          sumError = outMax;
+        } else if (sumError < outMin) {
+          sumError = outMin;
+        }
+        float dErr = (sample - lastSample);
+        sumPID = kp * error + ki * sumError + kd * dErr;
+        if (sumPID > outMax) {
+          sumPID = outMax;
+        } else if (sumError < outMin) {
+          sumPID = outMin;
+        }
+        lastSample = sample;
+        lastTime = now;
+      }
+    }
+
+    void SetOutputLimits(float Min, float Max)
+    {
+      if (Min > Max) return;
+      outMin = Min;
+      outMax = Max;
+
+      if (sumError > outMax) {
+        sumError = outMax;
+      } else if (sumError < outMin) {
+        sumError = outMin;
+      }
+      if (sumPID > outMax) {
+        sumPID = outMax;
+      } else if (sumError < outMin) {
+        sumPID = outMin;
+      }
+    }
+  ```
+  
+### Sinais de Entrada
+O mapeamento dos sinais de entrada para sinais lineares não foi feito, pois a equação tornou se muito complexa para a implementação no Arduino e consequentemente teria diminuido significadamente o desempenho do controlador PID. Portanto, o sinal de entrada é a diferença da luminosidade entre dois LDRs de cada direção. Abaixo seguem as planilhas das regressões dos potenciômetros e sensores com o gráfico referente à regressão dos quatro LDRs:
 
 ![alt tag](https://raw.githubusercontent.com/Ricardo959/Controle-Digital/master/7.png)
 ![alt tag](https://raw.githubusercontent.com/Ricardo959/Controle-Digital/master/8.png)
 ![alt tag](https://raw.githubusercontent.com/Ricardo959/Controle-Digital/master/6.png)
 ![alt tag](https://raw.githubusercontent.com/Ricardo959/Controle-Digital/master/5.png)
-
-Melhorias implementadas
-* SampleTime
-  Faz que o PID seja aplicado ao sistema em tempos regulares, como em nosso caso 50ms, ou seja, o sistema fica sempre atualizado com as melhorias do PID
-* Derivate Kick
-  O principal objetivo dessa melhoria é eliminar o fenômeno conhecido como derivate kick, que nada mais é pico que ocorrem na saida e que estão diretamente ligados a entrada
-* Tuning Changes
-  Capacidade que o sistema ganhou de poder alterar Kp, Ki e Kd com o sistema ainda em execução
-* Reset Windup
-  Com limites de saídas já estabelecidos o Reset Windup evita que o sistema ultrapasse valores não suportados pelo conjunto
   
 ## CONCLUSÃO
 Com a crescente demanda de energias renováveis mais eficientes no mercado, o sistema de seguidor solar será concebido como uma solução muito benéfica.
