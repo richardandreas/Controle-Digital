@@ -237,7 +237,7 @@ class calculoPID {
    }
    void Initialize()
    {
-     lastesample = sample;
+     lastsample = sample;
      sumPID = sumError;
      if(sumPID > OutMax)
      {
@@ -328,7 +328,7 @@ void setup() {
 void loop() {
   buttonState = digitalRead(buttonPin); // leia o estado do valor do botão de pressão:
   pid_vertical.SetMode(buttonState);  // Fornece o Status do botão para a função SetMode
-
+  pid_horizontal.SetMode(buttonState);  // Fornece o Status do botão para a função SetMode
   if (buttonState == HIGH) {   // verifique se o botão está pressionado
     digitalWrite(ledPin, HIGH);  // liga o LED:
 
