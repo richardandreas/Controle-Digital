@@ -267,3 +267,4 @@ Com a implementação do controlador PID foi visivelmente notório a redução d
 No entanto os controladores integral e derivativo foram menos atuantes no processo, sendo observado uma maior atuação por parte do controlador proporcional. O controlador proporcional trouxe velocidade ao processo, o controlador integrativo fez com o que o sistema reduzisse a sua velocidade quando aproximava-se do setpoint, o controlador diferencial trouxe estabilidade ao sistema.
 
 ![alt tag](https://raw.githubusercontent.com/Ricardo959/Controle-Digital/master/9.png)
+![alt tag](https://raw.githubusercontent.com/Ricardo959/Controle-Digital/master/WhatsApp%20Image%202017-11-29%20at%2017.16.24.jpeg)
