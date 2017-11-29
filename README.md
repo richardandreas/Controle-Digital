@@ -134,7 +134,9 @@ calculoPID pid_horizontal(kpHorizontal, kiHorizontal, kdHorizontal, 0);
 ### Melhorias
 Cada melhoria no código tem sua própria função para o cálculo. Assim, ao usar a classe é possível fazer testes com cada malhoria mudando apenas o "Compute". As melhorias implementadas são as seguintes:
 
-* SampleTime: Faz que o PID seja aplicado ao sistema em tempos regulares, como em nosso caso 50ms, ou seja, o sistema fica sempre atualizado com as melhorias do PID;
+* SampleTime: Com tempo regulares de cada ciclo, o PID era aplicado com base em um tempo de amostragem já definido de 50ms. O sample time reduziu quase que em totalidade vibrações que ocorriam durante atividade do sistema.
+Também era notório pequenas “Travadas” durante o deslocamento dos servomotores, o qual também foram em parcialidade corrigidas
+;
 
   ```
   void ComputeST() {
@@ -167,7 +169,9 @@ Cada melhoria no código tem sua própria função para o cálculo. Assim, ao us
     }
   ```
   
-* Derivate Kick: O principal objetivo dessa melhoria é eliminar o fenômeno conhecido como derivate kick, que nada mais é pico que ocorrem na saida e que estão diretamente ligados a entrada;
+* Derivate Kick: O principal objetivo dessa melhoria é eliminar o fenômeno conhecido como derivate kick, que nada mais é pico que ocorrem na saida e que estão diretamente ligados a entrada. Quando se posicionava o ponto luminoso em um área diferente do sistema, era notório um certo pico quando os servos iniciavam o deslocamento. O problema foi reduzido em parcialidade, não obtendo resultados muito satisfatórios.
+
+;
 
   ```
   void ComputeDK() {
@@ -185,7 +189,8 @@ Cada melhoria no código tem sua própria função para o cálculo. Assim, ao us
     }
   ```
   
-* Tuning Changes: Capacidade que o sistema ganhou de poder alterar Kp, Ki e Kd com o sistema ainda em execução;
+* Tuning Changes: Capacidade que o sistema ganhou de poder alterar Kp, Ki e Kd com o sistema ainda em execução. Porém valores muito altos ou baixos dos parâmetros levou o sistema a ficar meio louco, como o esperado.
+;
 
   ```
   void SetTunings(float _kp, float _ki, float _kd) {
@@ -196,7 +201,9 @@ Cada melhoria no código tem sua própria função para o cálculo. Assim, ao us
   ```
   
 * Reset Windup
-  Com limites de saídas já estabelecidos o Reset Windup evita que o sistema ultrapasse valores não suportados pelo conjunto.
+  Com limites de saídas já estabelecidos o Reset Windup evita que o sistema ultrapasse valores não suportados pelo conjunto. Este problema estava presente em forma de atraso da entrada, ou seja, na leitura os LDR’s ou na leitura dos potenciômetros. Fazendo com que os servos operassem de forma incorreta, tentando chegar a ângulos não aceitáveis pela estrutura física. Com a definição de limites, tanto máximo quando mínimo de saída,  o problema foi consideravelmente resolvido 
+
+
   
   ```
    void ComputeRW() {
